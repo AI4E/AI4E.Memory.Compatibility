@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27705.2000
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{63EF1067-C18B-428C-B8BD-0B233FBC0CEF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{57FADC07-D313-47C7-AF05-0E5E8475F66E}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI4E.Memory.Compatibility", "src\AI4E.Memory.Compatibility\AI4E.Memory.Compatibility.csproj", "{1184B60E-A341-4C75-AA88-3CC2AC2581E8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1184B60E-A341-4C75-AA88-3CC2AC2581E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1184B60E-A341-4C75-AA88-3CC2AC2581E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1184B60E-A341-4C75-AA88-3CC2AC2581E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1184B60E-A341-4C75-AA88-3CC2AC2581E8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1184B60E-A341-4C75-AA88-3CC2AC2581E8} = {63EF1067-C18B-428C-B8BD-0B233FBC0CEF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {946E926C-390C-48FD-9B4B-40ECE0A90F0A}
+	EndGlobalSection
+EndGlobal
