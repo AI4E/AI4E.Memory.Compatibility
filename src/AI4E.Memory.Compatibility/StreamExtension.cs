@@ -14,8 +14,11 @@ namespace AI4E.Memory.Compatibility
         private static readonly Func<Stream, Memory<byte>, CancellationToken, ValueTask<int>> _readAsyncShim;
         private static readonly Func<Stream, ReadOnlyMemory<byte>, CancellationToken, ValueTask> _writeAsyncShim;
 
-        private static readonly Func<Stream, Memory<byte>, int> _readShim;
-        private static readonly Action<Stream, ReadOnlyMemory<byte>> _writeShim;
+        private static readonly ReadShim _readShim;
+        private static readonly WriteShim _writeShim;
+
+        private delegate int ReadShim(Stream stream, Span<byte> buffer);
+        private delegate void WriteShim(Stream stream, ReadOnlySpan<byte> buffer);
 
         static StreamExtension()
         {
@@ -60,10 +63,9 @@ namespace AI4E.Memory.Compatibility
             {
                 Assert(readMethod.ReturnType == typeof(int));
                 var streamParameter = Expression.Parameter(typeof(Stream), "stream");
-                var bufferParameter = Expression.Parameter(typeof(Memory<byte>), "buffer");
-                var spanAccess = Expression.Property(bufferParameter, nameof(Memory<byte>.Span));
-                var methodCall = Expression.Call(streamParameter, readMethod, spanAccess);
-                _readShim = Expression.Lambda<Func<Stream, Memory<byte>, int>>(
+                var bufferParameter = Expression.Parameter(typeof(Span<byte>), "buffer");
+                var methodCall = Expression.Call(streamParameter, readMethod, bufferParameter);
+                _readShim = Expression.Lambda<ReadShim>(
                     methodCall,
                     streamParameter,
                     bufferParameter).Compile();
@@ -75,10 +77,9 @@ namespace AI4E.Memory.Compatibility
             {
                 Assert(writeMethod.ReturnType == typeof(void));
                 var streamParameter = Expression.Parameter(typeof(Stream), "stream");
-                var bufferParameter = Expression.Parameter(typeof(ReadOnlyMemory<byte>), "buffer");
-                var spanAccess = Expression.Property(bufferParameter, nameof(ReadOnlyMemory<byte>.Span));
-                var methodCall = Expression.Call(streamParameter, writeMethod, spanAccess);
-                _writeShim = Expression.Lambda<Action<Stream, ReadOnlyMemory<byte>>>(
+                var bufferParameter = Expression.Parameter(typeof(ReadOnlySpan<byte>), "buffer");
+                var methodCall = Expression.Call(streamParameter, writeMethod, bufferParameter);
+                _writeShim = Expression.Lambda<WriteShim>(
                    methodCall,
                    streamParameter,
                    bufferParameter).Compile();
@@ -180,7 +181,7 @@ namespace AI4E.Memory.Compatibility
             }
         }
 
-        public static int Read(this Stream stream, Memory<byte> buffer)
+        public static int Read(this Stream stream, Span<byte> buffer)
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
@@ -189,14 +190,6 @@ namespace AI4E.Memory.Compatibility
             {
                 return _readShim(stream, buffer);
             }
-
-            return Read(stream, buffer.Span);
-        }
-
-        public static int Read(this Stream stream, Span<byte> buffer)
-        {
-            if (stream == null)
-                throw new ArgumentNullException(nameof(stream));
 
             if (stream is MemoryStream memoryStream && memoryStream.TryGetBuffer(out var memoryStreamBuffer))
             {
@@ -209,11 +202,6 @@ namespace AI4E.Memory.Compatibility
                 return result;
             }
 
-            return ReadCore(stream, buffer);
-        }
-
-        private static int ReadCore(Stream stream, Span<byte> buffer)
-        {
             var array = ArrayPool<byte>.Shared.Rent(buffer.Length);
 
             try
@@ -231,7 +219,7 @@ namespace AI4E.Memory.Compatibility
             }
         }
 
-        public static void Write(this Stream stream, ReadOnlyMemory<byte> buffer)
+        public static void Write(this Stream stream, ReadOnlySpan<byte> buffer)
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
@@ -242,14 +230,6 @@ namespace AI4E.Memory.Compatibility
                 return;
             }
 
-            Write(stream, buffer.Span);
-        }
-
-        public static void Write(this Stream stream, ReadOnlySpan<byte> buffer)
-        {
-            if (stream == null)
-                throw new ArgumentNullException(nameof(stream));
-
             if (stream is MemoryStream memoryStream && memoryStream.CanWrite && memoryStream.TryGetBuffer(out var memoryStreamBuffer))
             {
                 var position = checked((int)stream.Position);
@@ -259,14 +239,10 @@ namespace AI4E.Memory.Compatibility
                 if (length - position >= buffer.Length)
                 {
                     buffer.CopyTo(memoryStreamBuffer.AsSpan().Slice(start: position));
+                    return;
                 }
             }
 
-            WriteCore(stream, buffer);
-        }
-
-        private static void WriteCore(Stream stream, ReadOnlySpan<byte> buffer)
-        {
             var array = ArrayPool<byte>.Shared.Rent(buffer.Length);
 
             try
