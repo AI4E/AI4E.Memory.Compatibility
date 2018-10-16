@@ -22,67 +22,72 @@ namespace AI4E.Memory.Compatibility
 
         static StreamExtension()
         {
-            var streamType = typeof(Stream);
-            var readAsyncMethod = streamType.GetMethod(nameof(Stream.ReadAsync), new[] { typeof(Memory<byte>), typeof(CancellationToken) });
-
-            if (readAsyncMethod != null)
+            // Mono seems to define the methods but throws a NotImplementedException when called.
+            // https://github.com/mono/mono/blob/c5b88ec4f323f2bdb7c7d0a595ece28dae66579c/mcs/class/corlib/corert/Stream.cs
+            if (!RuntimeHelper.IsRunningOnMono())
             {
-                Assert(readAsyncMethod.ReturnType == typeof(ValueTask<int>));
+                var streamType = typeof(Stream);
+                var readAsyncMethod = streamType.GetMethod(nameof(Stream.ReadAsync), new[] { typeof(Memory<byte>), typeof(CancellationToken) });
 
-                var streamParameter = Expression.Parameter(typeof(Stream), "stream");
-                var bufferParameter = Expression.Parameter(typeof(Memory<byte>), "buffer");
-                var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
-                var methodCall = Expression.Call(streamParameter, readAsyncMethod, bufferParameter, cancellationTokenParameter);
-                _readAsyncShim = Expression.Lambda<Func<Stream, Memory<byte>, CancellationToken, ValueTask<int>>>(
-                    methodCall,
-                    streamParameter,
-                    bufferParameter,
-                    cancellationTokenParameter).Compile();
-            }
+                if (readAsyncMethod != null)
+                {
+                    Assert(readAsyncMethod.ReturnType == typeof(ValueTask<int>));
 
-            var writeAsyncMethod = streamType.GetMethod(nameof(Stream.WriteAsync), new[] { typeof(ReadOnlyMemory<byte>), typeof(CancellationToken) });
+                    var streamParameter = Expression.Parameter(typeof(Stream), "stream");
+                    var bufferParameter = Expression.Parameter(typeof(Memory<byte>), "buffer");
+                    var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
+                    var methodCall = Expression.Call(streamParameter, readAsyncMethod, bufferParameter, cancellationTokenParameter);
+                    _readAsyncShim = Expression.Lambda<Func<Stream, Memory<byte>, CancellationToken, ValueTask<int>>>(
+                        methodCall,
+                        streamParameter,
+                        bufferParameter,
+                        cancellationTokenParameter).Compile();
+                }
 
-            if (writeAsyncMethod != null)
-            {
-                Assert(writeAsyncMethod.ReturnType == typeof(ValueTask));
+                var writeAsyncMethod = streamType.GetMethod(nameof(Stream.WriteAsync), new[] { typeof(ReadOnlyMemory<byte>), typeof(CancellationToken) });
 
-                var streamParameter = Expression.Parameter(typeof(Stream), "stream");
-                var bufferParameter = Expression.Parameter(typeof(ReadOnlyMemory<byte>), "buffer");
-                var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
-                var methodCall = Expression.Call(streamParameter, writeAsyncMethod, bufferParameter, cancellationTokenParameter);
-                _writeAsyncShim = Expression.Lambda<Func<Stream, ReadOnlyMemory<byte>, CancellationToken, ValueTask>>(
-                    methodCall,
-                    streamParameter,
-                    bufferParameter,
-                    cancellationTokenParameter).Compile();
-            }
+                if (writeAsyncMethod != null)
+                {
+                    Assert(writeAsyncMethod.ReturnType == typeof(ValueTask));
 
-            var readMethod = streamType.GetMethod(nameof(Stream.Read), new[] { typeof(Span<byte>) });
+                    var streamParameter = Expression.Parameter(typeof(Stream), "stream");
+                    var bufferParameter = Expression.Parameter(typeof(ReadOnlyMemory<byte>), "buffer");
+                    var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
+                    var methodCall = Expression.Call(streamParameter, writeAsyncMethod, bufferParameter, cancellationTokenParameter);
+                    _writeAsyncShim = Expression.Lambda<Func<Stream, ReadOnlyMemory<byte>, CancellationToken, ValueTask>>(
+                        methodCall,
+                        streamParameter,
+                        bufferParameter,
+                        cancellationTokenParameter).Compile();
+                }
 
-            if (readMethod != null)
-            {
-                Assert(readMethod.ReturnType == typeof(int));
-                var streamParameter = Expression.Parameter(typeof(Stream), "stream");
-                var bufferParameter = Expression.Parameter(typeof(Span<byte>), "buffer");
-                var methodCall = Expression.Call(streamParameter, readMethod, bufferParameter);
-                _readShim = Expression.Lambda<ReadShim>(
-                    methodCall,
-                    streamParameter,
-                    bufferParameter).Compile();
-            }
+                var readMethod = streamType.GetMethod(nameof(Stream.Read), new[] { typeof(Span<byte>) });
 
-            var writeMethod = streamType.GetMethod(nameof(Stream.Write), new[] { typeof(ReadOnlySpan<byte>) });
+                if (readMethod != null)
+                {
+                    Assert(readMethod.ReturnType == typeof(int));
+                    var streamParameter = Expression.Parameter(typeof(Stream), "stream");
+                    var bufferParameter = Expression.Parameter(typeof(Span<byte>), "buffer");
+                    var methodCall = Expression.Call(streamParameter, readMethod, bufferParameter);
+                    _readShim = Expression.Lambda<ReadShim>(
+                        methodCall,
+                        streamParameter,
+                        bufferParameter).Compile();
+                }
 
-            if (writeMethod != null)
-            {
-                Assert(writeMethod.ReturnType == typeof(void));
-                var streamParameter = Expression.Parameter(typeof(Stream), "stream");
-                var bufferParameter = Expression.Parameter(typeof(ReadOnlySpan<byte>), "buffer");
-                var methodCall = Expression.Call(streamParameter, writeMethod, bufferParameter);
-                _writeShim = Expression.Lambda<WriteShim>(
-                   methodCall,
-                   streamParameter,
-                   bufferParameter).Compile();
+                var writeMethod = streamType.GetMethod(nameof(Stream.Write), new[] { typeof(ReadOnlySpan<byte>) });
+
+                if (writeMethod != null)
+                {
+                    Assert(writeMethod.ReturnType == typeof(void));
+                    var streamParameter = Expression.Parameter(typeof(Stream), "stream");
+                    var bufferParameter = Expression.Parameter(typeof(ReadOnlySpan<byte>), "buffer");
+                    var methodCall = Expression.Call(streamParameter, writeMethod, bufferParameter);
+                    _writeShim = Expression.Lambda<WriteShim>(
+                       methodCall,
+                       streamParameter,
+                       bufferParameter).Compile();
+                }
             }
         }
 
@@ -139,7 +144,7 @@ namespace AI4E.Memory.Compatibility
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            if (_writeAsyncShim != null)
+            if (_readAsyncShim != null)
             {
                 return _writeAsyncShim(stream, buffer, cancellationToken);
             }
@@ -186,7 +191,7 @@ namespace AI4E.Memory.Compatibility
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            if (_readShim != null)
+            if (_readAsyncShim != null)
             {
                 return _readShim(stream, buffer);
             }
@@ -224,7 +229,7 @@ namespace AI4E.Memory.Compatibility
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            if (_writeShim != null)
+            if (_readAsyncShim != null)
             {
                 _writeShim(stream, buffer);
                 return;
