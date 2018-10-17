@@ -92,7 +92,7 @@ namespace AI4E.Memory.Compatibility
             if (getStringMethod == null)
                 return null;
 
-            Assert(getStringMethod.ReturnType == typeof(int));
+            Assert(getStringMethod.ReturnType == typeof(string));
 
             var encodingParameter = Expression.Parameter(typeof(Encoding), "encoding");
             var bytesParameter = Expression.Parameter(typeof(ReadOnlySpan<byte>), "bytes");
