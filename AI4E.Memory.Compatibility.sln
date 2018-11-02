@@ -7,13 +7,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{63EF1067-C18
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{57FADC07-D313-47C7-AF05-0E5E8475F66E}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		Directory.Build.props = Directory.Build.props
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI4E.Memory.Compatibility", "src\AI4E.Memory.Compatibility\AI4E.Memory.Compatibility.csproj", "{1184B60E-A341-4C75-AA88-3CC2AC2581E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AI4E.Memory.Compatibility", "src\AI4E.Memory.Compatibility\AI4E.Memory.Compatibility.csproj", "{1184B60E-A341-4C75-AA88-3CC2AC2581E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
