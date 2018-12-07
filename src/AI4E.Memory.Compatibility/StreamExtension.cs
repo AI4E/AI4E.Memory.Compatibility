@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.IO;
 using System.Linq.Expressions;
@@ -144,7 +144,7 @@ namespace AI4E.Memory.Compatibility
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            if (_readAsyncShim != null)
+            if (_writeAsyncShim != null)
             {
                 return _writeAsyncShim(stream, buffer, cancellationToken);
             }
@@ -191,7 +191,7 @@ namespace AI4E.Memory.Compatibility
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            if (_readAsyncShim != null)
+            if (_readShim != null)
             {
                 return _readShim(stream, buffer);
             }
@@ -229,7 +229,7 @@ namespace AI4E.Memory.Compatibility
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            if (_readAsyncShim != null)
+            if (_writeShim != null)
             {
                 _writeShim(stream, buffer);
                 return;
