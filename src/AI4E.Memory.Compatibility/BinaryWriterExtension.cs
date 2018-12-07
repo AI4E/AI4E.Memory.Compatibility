@@ -40,7 +40,7 @@ namespace AI4E.Memory.Compatibility
 
         private static WriteCharsShim BuildWriteCharsShim(Type binaryWriterType)
         {
-            var writeMethod = binaryWriterType.GetMethod(nameof(Write), new[] { typeof(ReadOnlySpan<byte>) });
+            var writeMethod = binaryWriterType.GetMethod(nameof(Write), new[] { typeof(ReadOnlySpan<char>) });
 
             if (writeMethod == null)
                 return null;
@@ -48,7 +48,7 @@ namespace AI4E.Memory.Compatibility
             Assert(writeMethod.ReturnType == typeof(void));
 
             var binaryWriterParameter = Expression.Parameter(binaryWriterType, "writer");
-            var charsParameter = Expression.Parameter(typeof(ReadOnlySpan<byte>), "chars");
+            var charsParameter = Expression.Parameter(typeof(ReadOnlySpan<char>), "chars");
             var methodCall = Expression.Call(binaryWriterParameter, writeMethod, charsParameter);
             return Expression.Lambda<WriteCharsShim>(methodCall, binaryWriterParameter, charsParameter).Compile();
         }
