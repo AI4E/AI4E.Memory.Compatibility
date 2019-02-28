@@ -1,6 +1,16 @@
 <Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" Condition="exists($([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../')))" />
-
+  <PropertyGroup>
+    <Authors>Andreas Trütschel and contributors</Authors>
+    <Product>$(ProjectName)</Product>
+    <Copyright>Copyright (c) Andreas Trütschel and contributors.</Copyright>
+    <PackageLicenseUrl>https://github.com/AI4E/AI4E.Memory.Compatibility/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/AI4E/AI4E.Memory.Compatibility</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/AI4E/AI4E.Memory.Compatibility</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+  
   <PropertyGroup>
     <RepositoryRoot Condition="'$(RepositoryRoot)' == ''">$(MSBuildThisFileDirectory)</RepositoryRoot>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -33,6 +43,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <MicrosoftAspNetCoreAppVersion Condition="'$(MicrosoftAspNetCoreAppVersion)' == ''">2.1.5</MicrosoftAspNetCoreAppVersion>  
+    <NetStandardVersion>netstandard2.0</NetStandardVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 </Project>
